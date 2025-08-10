@@ -1,5 +1,3 @@
-import json
-import requests
 # from constants import *
 from typing import List
 
@@ -57,10 +55,17 @@ class EvaluationMetric(IntEnum):
     IOU = 11
     SUPPORT = 12
 
+
 class Anote:
     def __init__(self, api_key):
         self.api_key = api_key
         # Initialize any required configurations
+
+        # since this is OOP utilize a more some OOP concepts that the code looks less static 
+        # this can can also be better when using the API because there is a already a nice JSON built 
+        # models 
+          # Store models in the instance for easy access
+
 
     def upload(self, dataset_name: str, data_path: str, split: str):
         """
@@ -107,6 +112,38 @@ class Anote:
 
         # Should return model ID and training status
         return {"model_id": "model_456", "status": "training_started", "training_job_id": "job_789"}
+    
+    # after completes load the images specific to dinov2 ? 
+    def _load_images(self, test_data: str):
+        """
+        Parses dataset JSON and loads images for prediction or training.
+        Args:
+            test_data (str): Path to dataset JSON with image info.
+        Returns:
+            List of PIL.Image or np.ndarray objects loaded from image paths.
+        """
+        import json
+        from PIL import Image
+
+        with open(test_data, "r") as f:
+            dataset = json.load(f)
+        
+        images = []
+        for item in dataset:
+            image_path = item.get("image_path")
+            if image_path:
+                image = Image.open(image_path).convert("RGB")
+                images.append(image)
+        return images
+    
+    def _run_dino_model(self, image, model_id):
+    # Use your loaded DINOv2 model here to predict on the input image
+    # For example, pseudo-code:
+    # boxes, scores, labels = self.dino_model.predict(image)
+    # return boxes, scores, labels
+    # is this actully necessary 
+        pass 
+
 
     def predict(self, model_type: str, test_data: str, labels: List[str], model_id: str = None, confidence_threshold: float = 0.5):
         """
@@ -127,16 +164,52 @@ class Anote:
                 - "confidence": List[float] - Confidence scores for each prediction
         """
         print(f"Running {model_type} predictions on {test_data} with model {model_id}")
-        
-        # Should return list of prediction dictionaries
-        return [
-            {
-                "image_id": 0,
-                "boxes": [[10, 10, 50, 50], [60, 60, 100, 100]],
-                "labels": ["A5", "A9"],
-                "confidence": [0.8, 0.7]
-            }
-        ]
+
+        # conditionals  does the job here 
+        if model_type == 'faster_rcnn':
+            print('model_type:', 'faster_rcnn')
+            return self._predict_yolov8(model_type, test_data, labels, model_id, confidence_threshold)
+        elif model_type == 'yolov8':
+            print('model_type:','yolov8')
+            return self._predict_yolov8(model_type, test_data, labels, model_id, confidence_threshold)
+        elif model_type == 'grounding_dino':
+            print('model_type:','grounding_dinoV2')
+            # call the helper function to predict dinoV2 stuff 
+            return self._predict_dinoV2(model_type, test_data, labels, model_id, confidence_threshold)
+
+    # use private func to do the dinoV2 stuff for security purposes 
+    def _predict_dinoV2(self, model_type, test_data, labels, model_id, confidence_threshold):
+        results = []
+
+        for image_id, image in enumerate(self._load_images(test_data)):
+            # run_dino_model is your custom function that calls DINOv2 model
+            raw_boxes, raw_scores, raw_labels = self._run_dino_model(image, model_id)
+
+            # Filter predictions by confidence threshold
+            filtered_indices = [i for i, score in enumerate(raw_scores) if score >= confidence_threshold]
+
+            boxes = [raw_boxes[i] for i in filtered_indices]
+            confidences = [raw_scores[i] for i in filtered_indices]
+            predicted_labels = [raw_labels[i] for i in filtered_indices]
+
+            # Convert boxes if needed to standard format
+            boxes = [self._convert_box_format(box) for box in boxes]
+
+            results.append({
+                "image_id": image_id,
+                "boxes": boxes,
+                "labels": predicted_labels,
+                "confidence": confidences
+            })
+
+        return results
+
+    def _predict_yolov8():
+        pass 
+
+    def _predict_faster_rcnn():
+        pass 
+
 
     def evaluate(self, ground_truths: str, predictions: str):
         """
@@ -203,6 +276,7 @@ class Anote:
             "error_message": None
         }
 
+    # is this function really necessary since predict is pretty much doing the same thing ? 
     def predictAll(self, report_name, model_types, model_id, dataset_id, actual_label_col_index, input_text_col_index, document_files=None):
         """
         Predict on an entire dataset using the specified model.
@@ -273,3 +347,6 @@ def _close_files(opened_files):
     for file in opened_files:
         if hasattr(file, 'close'):
             file.close()
+
+
+
