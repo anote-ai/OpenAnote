@@ -66,15 +66,15 @@ faster_rcnn_response = anote.train(
 faster_rcnn_model_id = faster_rcnn_response.get("model_id")
 print(f"Faster R-CNN model ID: {faster_rcnn_model_id}")
 
-# Train YOLOv8 model
+# Train YOLO model
 yolo_response = anote.train(
     task_type=NLPTask.OBJECT_DETECTION,
-    model_type="yolov8", 
+    model_type="yolo", 
     train_dataset="./data/train_annotations.json",
     validation_dataset="./data/val_annotations.json"
 )
 yolo_model_id = yolo_response.get("model_id")
-print(f"YOLOv8 model ID: {yolo_model_id}")
+print(f"YOLO model ID: {yolo_model_id}")
 
 # Train Grounding DINO model
 dino_response = anote.train(
@@ -90,7 +90,7 @@ print(f"Grounding DINO model ID: {dino_model_id}")
 print("\nWaiting for training to complete...")
 models_to_check = [
     ("Faster R-CNN", faster_rcnn_model_id),
-    ("YOLOv8", yolo_model_id), 
+    ("YOLO", yolo_model_id), 
     ("Grounding DINO", dino_model_id)
 ]
 
@@ -120,9 +120,9 @@ faster_rcnn_predictions = anote.predict(
     confidence_threshold=0.5
 )
 
-# YOLOv8 predictions  
+# YOLO predictions  
 yolo_predictions = anote.predict(
-    model_type="yolov8",
+    model_type="yolo",
     test_data="./data/test_images/",
     labels=class_labels,
     model_id=yolo_model_id,
@@ -139,7 +139,7 @@ dino_predictions = anote.predict(
 )
 
 print("Faster R-CNN Predictions:", len(faster_rcnn_predictions))
-print("YOLOv8 Predictions:", len(yolo_predictions))
+print("YOLO Predictions:", len(yolo_predictions))
 print("Grounding DINO Predictions:", len(dino_predictions))
 
 # Save predictions to files for evaluation
@@ -162,12 +162,12 @@ faster_rcnn_eval_results = anote.evaluate(
 )
 print("Faster R-CNN Evaluation Results:", faster_rcnn_eval_results)
 
-# Evaluate YOLOv8
+# Evaluate YOLO
 yolo_eval_results = anote.evaluate(
     ground_truths="./data/test_annotations.json", 
     predictions="yolo_predictions.json"
 )
-print("YOLOv8 Evaluation Results:", yolo_eval_results)
+print("YOLO Evaluation Results:", yolo_eval_results)
 
 # Evaluate Grounding DINO
 dino_eval_results = anote.evaluate(
@@ -181,7 +181,7 @@ print("\n" + "="*50)
 print("MODEL COMPARISON SUMMARY")
 print("="*50)
 print(f"Faster R-CNN - Predictions: {len(faster_rcnn_predictions)}")
-print(f"YOLOv8 - Predictions: {len(yolo_predictions)}")
+print(f"YOLO - Predictions: {len(yolo_predictions)}")
 print(f"Grounding DINO - Predictions: {len(dino_predictions)}")
 print("="*50)
 
