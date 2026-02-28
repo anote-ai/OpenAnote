@@ -74,7 +74,6 @@ Obtaining zero-shot results for supported LLMs.
 |------------------|------------------------------|
 | OpenAI           | GPT-4o, o1                  |
 | Meta             | Llama3                      |
-| Anthropic        | Claude 3.5 Sonnet           |
 | Google           | Gemini2                     |
 | Mistral          | Mistral 7B                  |
 | xAI              | Grok2                       |
